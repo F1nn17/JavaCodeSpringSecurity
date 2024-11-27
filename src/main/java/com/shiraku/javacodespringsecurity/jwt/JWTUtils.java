@@ -49,4 +49,5 @@ public class JWTUtils {
         DecodedJWT decodedJWT = decodeToken(token);
         return decodedJWT.getExpiresAt().before(new Date());
     }
+
 }

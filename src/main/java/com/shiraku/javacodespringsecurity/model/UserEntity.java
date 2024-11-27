@@ -23,7 +23,7 @@ public class UserEntity implements UserDetails {
     private Long id;
     private String username;
     private String password;
-    private Role  role;
+    private Role role;
     private boolean accountNonLocked = true;
     private int failedLoginAttempts = 0;
 
@@ -44,6 +44,6 @@ public class UserEntity implements UserDetails {
     }
 
     public enum Role {
-        USER, MODERATOR, ADMIN
+        USER, MODERATOR, SUPER_ADMIN
     }
 }

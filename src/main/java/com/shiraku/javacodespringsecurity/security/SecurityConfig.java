@@ -2,6 +2,7 @@ package com.shiraku.javacodespringsecurity.security;
 
 import com.shiraku.javacodespringsecurity.filter.JwtAuthenticationFilter;
 import com.shiraku.javacodespringsecurity.filter.LoggingFilter;
+import com.shiraku.javacodespringsecurity.model.UserEntity;
 import com.shiraku.javacodespringsecurity.service.OurUserDetailedService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +13,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -33,24 +35,27 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
-                .csrf(AbstractHttpConfigurer::disable) // Отключение CSRF
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
-                                .requestMatchers("/login", "/register", "/home").permitAll()
-                                .requestMatchers("/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/moderator/**").hasRole("MODERATOR")
-                                .requestMatchers("/user/**").hasAnyRole("USER", "MODERATOR", "ADMIN")
+                                .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/home").permitAll()
+                                .requestMatchers("/api/auth/admin/**").hasRole(UserEntity.Role.SUPER_ADMIN.name())
+                                .requestMatchers("/api/auth/moderator/**").hasRole(UserEntity.Role.MODERATOR.name())
+                                .requestMatchers("/api/auth/user/**").hasAnyRole(
+                                        UserEntity.Role.USER.name(),
+                                        UserEntity.Role.MODERATOR.name(),
+                                        UserEntity.Role.SUPER_ADMIN.name())
                                 .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(loggingFilter, JwtAuthenticationFilter.class);
-
-        httpSecurity
+                .addFilterBefore(loggingFilter, JwtAuthenticationFilter.class)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .headers(headers -> headers
                         .httpStrictTransportSecurity(hsts -> hsts.maxAgeInSeconds(31536000)
                                 .includeSubDomains(true)
                         )
                 );
+
 
         return httpSecurity.build();
 
